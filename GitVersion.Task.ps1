@@ -44,7 +44,7 @@ Add-BuildTask GitVersion @{
             }
 
             Write-Verbose "For ${Name}: Using GitVersion config $GitVersionYaml" -Verbose
-
+            
             $LogFile = Join-Path $TempRoot -ChildPath "$GitVersionTagPrefix$GitSha.log"
             if (Test-Path $LogFile) {
                 Remove-Item $LogFile
@@ -52,7 +52,7 @@ Add-BuildTask GitVersion @{
             if (Test-Path $VersionFile) {
                 Remove-Item $VersionFile
             }
-
+            
             try {
                 # We can't splat because it's 5 copies of the same parameter, so, use line-wrapping escapes:
                 # Also, the no-bump-message has to stay at .* or else every commit to main will increment all components
@@ -65,7 +65,8 @@ Add-BuildTask GitVersion @{
                 -overrideconfig patch-version-bump-message="$($GitVersionMessagePrefix):\s*(fix|patch)" `
                 -overrideconfig no-bump-message="$($GitVersionMessagePrefix):\s*(skip|none)" > $VersionFile 2> $LogFile
                 #>
-
+                
+                Write-Verbose "For ${Name}: Writing GitVersion data to [$VersionFile]" -Verbose
                 <# Switch to conventional commit model #>
                 dotnet gitversion -verbosity diagnostic -config $GitVersionYaml `
                     -overrideconfig tag-prefix="$($GitVersionTagPrefix)" `
