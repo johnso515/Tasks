@@ -73,6 +73,7 @@ Add-BuildTask GitVersion @{
                     -overrideconfig minor-version-bump-message="(feat)(\([\w\s\-,/]*\))?:" `
                     -overrideconfig patch-version-bump-message="(fix|perf)(\([\w\s\-,/]*\))?:" `
                     -overrideconfig no-bump-message="$($GitVersionMessagePrefix):\s*(skip|none)" > $VersionFile 2> $LogFile
+
                 if (Test-Path $LogFile) {
                     Write-Host $PSStyle.Formatting.Error ((Get-Content $LogFile) -join "`n") $PSStyle.Reset
                 }
@@ -94,9 +95,9 @@ Add-BuildTask GitVersion @{
                 Write-Warning "GitVersion failed $($_.Exception.Message) trying with URL $GitUrl"
                 dotnet gitversion -url $GitUrl -b $BranchName -c $GitSha -config $GitVersionYaml `
                     -overrideconfig tag-prefix="$($GitVersionTagPrefix)" `
-                    -overrideconfig major-version-bump-message="$($GitVersionMessagePrefix):\s*(breaking|major)" `
-                    -overrideconfig minor-version-bump-message="$($GitVersionMessagePrefix):\s*(feature|minor)" `
-                    -overrideconfig patch-version-bump-message="$($GitVersionMessagePrefix):\s*(fix|patch)" `
+                    -overrideconfig major-version-bump-message="(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([\w\s\-,/]*\))?(!:|:.*\n\n((.+\n)+\n)?BREAKING CHANGE:\s.+)\w" `
+                    -overrideconfig minor-version-bump-message="(feat)(\([\w\s\-,/]*\))?:" `
+                    -overrideconfig patch-version-bump-message="(fix|perf)(\([\w\s\-,/]*\))?:" `
                     -overrideconfig no-bump-message="$($GitVersionMessagePrefix):\s*(skip|none)" > $VersionFile 2> $LogFile
 
 
