@@ -21,6 +21,9 @@ Add-BuildTask GitVersion @{
         }
     }
     Jobs    = {
+
+        Write-Information "  (GitVersion) GitSha: $Script:GitSha"
+
         $VersionFile = Join-Path $TempRoot -ChildPath "$GitSha.json"
         $script:GitVersion = @{}
         foreach ($Name in $PackageNames) {
@@ -54,14 +57,22 @@ Add-BuildTask GitVersion @{
                 # We can't splat because it's 5 copies of the same parameter, so, use line-wrapping escapes:
                 # Also, the no-bump-message has to stay at .* or else every commit to main will increment all components
                 # Write-Host dotnet gitversion -config $GitVersionYaml -output file -outputfile $VersionFile -verbosity verbose
-                <# -output file -outputfile $VersionFile #>
+                <# -output file -outputfile $VersionFile 
+                dotnet gitversion -verbosity diagnostic -config $GitVersionYaml `
+                -overrideconfig tag-prefix="$($GitVersionTagPrefix)" `
+                -overrideconfig major-version-bump-message="$($GitVersionMessagePrefix):\s*(breaking|major)" `
+                -overrideconfig minor-version-bump-message="$($GitVersionMessagePrefix):\s*(feature|minor)" `
+                -overrideconfig patch-version-bump-message="$($GitVersionMessagePrefix):\s*(fix|patch)" `
+                -overrideconfig no-bump-message="$($GitVersionMessagePrefix):\s*(skip|none)" > $VersionFile 2> $LogFile
+                #>
+
+                <# Switch to conventional commit model #>
                 dotnet gitversion -verbosity diagnostic -config $GitVersionYaml `
                     -overrideconfig tag-prefix="$($GitVersionTagPrefix)" `
-                    -overrideconfig major-version-bump-message="$($GitVersionMessagePrefix):\s*(breaking|major)" `
-                    -overrideconfig minor-version-bump-message="$($GitVersionMessagePrefix):\s*(feature|minor)" `
-                    -overrideconfig patch-version-bump-message="$($GitVersionMessagePrefix):\s*(fix|patch)" `
+                    -overrideconfig major-version-bump-message="(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([\w\s\-,/]*\))?(!:|:.*\n\n((.+\n)+\n)?BREAKING CHANGE:\s.+)\w" `
+                    -overrideconfig minor-version-bump-message="(feat)(\([\w\s\-,/]*\))?:" `
+                    -overrideconfig patch-version-bump-message="(fix|perf)(\([\w\s\-,/]*\))?:" `
                     -overrideconfig no-bump-message="$($GitVersionMessagePrefix):\s*(skip|none)" > $VersionFile 2> $LogFile
-
                 if (Test-Path $LogFile) {
                     Write-Host $PSStyle.Formatting.Error ((Get-Content $LogFile) -join "`n") $PSStyle.Reset
                 }
