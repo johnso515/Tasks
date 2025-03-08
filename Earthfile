@@ -1,5 +1,5 @@
-VERSION 0.7
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+VERSION 0.8
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /tasks
 
 tasks:
