@@ -1,46 +1,32 @@
-mode: mainline #  Each merged branch against main will increment the patch version unless otherwise specified in a commit message
-commit-date-format: "yyyyMMddTHHmmss"
-assembly-file-versioning-format: "{Major}.{Minor}.{Patch}.{env:GITHUB_RUN_NUMBER ?? 0}"
-
-# This repo needs to use NuGetVersionV2 for compatibility with PowerShellGallery
-assembly-informational-format: "{NuGetVersionV2}+Build.{env:GITHUB_RUN_NUMBER ?? local}.Branch.{EscapedBranchName}.Sha.{Sha}.Date.{CommitDate}"
-major-version-bump-message: 'semver:\s?(breaking|major)'
-minor-version-bump-message: 'semver:\s?(feature|minor)'
-patch-version-bump-message: 'semver:\s?(fix|patch)'
-no-bump-message: 'semver:\s?(none|skip)'
-commit-message-incrementing: Enabled
-
+mode: ContinuousDelivery 
+# Mainline
+assembly-versioning-format: '{Major}.{Minor}.{Patch}.{env:BUILDCOUNT ?? 0}'
+assembly-informational-format: '{InformationalVersion}+Build.{env:BUILDCOUNT ?? 0}.Date.{CommitDate}.Branch.{env:SAFEBRANCHNAME ?? unknown}.Sha.{Sha}'
 branches:
-  main:
-    tag: "" # explicitly no tag for main builds
+  master:
+    increment: Minor  # Allow feat: to bump minor
     regex: ^master$|^main$
-    increment: Patch
-    is-mainline: true
-    tracks-release-branches: true
-  hotfix:
-    tag: rc
-    regex: hotfix(es)?/\d+\.\d+\.\d+
-    increment: None
-    is-release-branch: true
-    prevent-increment-of-merged-branch-version: true
-    source-branches: ["main"]
-  release:
-    tag: rc
-    regex: releases?/\d+\.\d+\.\d+
-    increment: None
-    is-release-branch: true
-    prevent-increment-of-merged-branch-version: true
-    source-branches: ["main"]
-  pull-request:
-    regex: pull/
-    tag: pr
-    tag-number-pattern: '[/-](?<number>\d+)'
-    increment: Patch
-    source-branches: ["main", "feature", "release", "hotfix"]
-  feature:
-    regex: .*/
-    tag: useBranchName
-    source-branches: ["main", "feature"]
     track-merge-target: true
-    tracks-release-branches: true
+    label: ""  # No pre-release label on main
+  develop:
+    increment: Minor
+    regex: ^develop$
+    track-merge-target: true
+    label: "alpha"  # Replace 'tag' with 'label'
+  feature:
+    increment: Minor
+    regex: ^feature/*
+    track-merge-target: true
+    label: "alpha"  # Optional for feature branches
+  release:
     increment: Patch
+    regex: ^release/*
+    track-merge-target: true
+    label: "beta"  # Optional for release branches
+major-version-bump-message: '(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([\w\s\-,/]*\))?(!:|:.*\n\n((.+\n)+\n)?BREAKING CHANGE:\s.+)\w'
+minor-version-bump-message: '(feat)(\([\w\s\-,/]*\))?:'
+patch-version-bump-message: '(fix|perf)(\([\w\s\-,/]*\))?:'
+ignore:
+  sha:
+    - b3f3880af234dd9fcc8e59979a8db2564699992c
+    - 333f626064f113cd2e5828e1b8a019002507e6ea
